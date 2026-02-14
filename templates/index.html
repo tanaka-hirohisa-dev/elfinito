@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+   <meta charset="UTF-8">
+   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+   <title>ボクシング動画</title>
+   <!-- CSSファイルの読み込み -->
+   <link rel="stylesheet" href="{{ url_for('static', filename='css/app.css') }}">
+</head>
+<body>
+
+{% set ns = namespace(buf_date = start_day) %}
+
+<h3>{{ start_day }}</h3>
+{% for target in list %}
+{% if ns.buf_date != target["date"] %}
+<h3>{{ target["date"] }}</h3>
+{% set ns.buf_date = target["date"] %}
+{% endif %}
+<details class="accordion-002">
+    <summary>{{ target["name"] }}</summary>
+    <p>
+      <span>{{ target["date"] }}</span><br />
+      <span>{{ target["size"] }}</span><br />
+      <span>{{ target["updated_at"] }}</span><br />
+      <span><a href="{{ target["url"] }}" download="{{ target["url"] }}">download</a></span><br />
+    </p>
+</details>
+{% endfor %}
+
+
+<img src="https://snake-fish.com/elfinito/QR.png"/>
+
+</body>
+</html>

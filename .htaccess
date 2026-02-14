@@ -1,0 +1,13 @@
+RewriteEngine On
+
+# HTTPからHTTPSへの強制リダイレクト
+RewriteCond %{HTTPS} off
+RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [R=301,L]
+
+# index.cgiを利用したリクエスト処理
+# ・クライアントからのリクエスト(https://<ドメイン名>/<コンテキストパス>)を
+#   ロリポップのApacheサーバが受けた際、常に「/index.cgi/<コンテキストパス>」の
+#   実行を行うことでFlaskで作られたWebアプリを使って、クライアントにレスポンスを返す
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteRule ^(.*)$ /elfinito/index.cgi/$1 [QSA,L]
+
