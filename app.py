@@ -1,9 +1,12 @@
 #!/usr/bin/env python3
+# -*- coding: utf-8 -*-
 
 from os.path import join, getsize, getmtime, isfile
 from os import listdir,getenv
 from datetime import datetime,date
 from flask import Flask, render_template, send_from_directory,  g, request, session, redirect
+from flask_sqlalchemy import SQLAlchemy
+from sqlalchemy.exc import SQLAlchemyError
 import logging
 from logging.handlers import RotatingFileHandler
 import pymysql
@@ -31,55 +34,60 @@ file_handler.setFormatter(formatter)
 access_logger.addHandler(file_handler)
 
 # DB接続
-def get_connection():
+DB_HOST     = getenv('PY_HOST')
+DB_USER     = getenv('PY_USER')
+DB_PASSWORD = getenv('PY_PASSWORD')
+DB_NAME     = getenv('PY_DATABASE')
+app.config['SQLALCHEMY_DATABASE_URI'] = (
+  f"mysql+pymysql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}/{DB_NAME}?charset=utf8"
+)
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+db = SQLAlchemy(app)
 
-  try:
-    con = pymysql.connect(
-      host=getenv('PY_HOST')
-     ,user=getenv('PY_USER')
-     ,password=getenv('PY_PASSWORD')
-     ,database=getenv('PY_DATABASE')
-     ,charset="utf8mb4"
-#     ,cursorclass=pymysql.cursors.DictCursor
-    )
-    return con
-  except pymysql.MySQLError as e:
-    access_logger.info(f"DB接続エラー: {e}")
-    return None
+# モデルクラス
+class TAccessLog(db.Model):
+  __tablename__ = 't_access_log'
+  id = db.Column(db.Integer, primary_key=True)
+  as_of_date = db.Column(db.Date, nullable=False)
+  path = db.Column(db.String(100), nullable=False)
+  ip = db.Column(db.String(20), nullable=False)
+  user_agent = db.Column(db.String(500), nullable=False)
+  created_at = db.Column(db.DateTime(timezone=True), server_default=db.func.now(), onupdate=db.func.now(), nullable=False)
 
+  def to_dict(self):
+    return {"id": self.id, "as_of_date": self.as_of_date, "path": self.path, "ip": self.ip, 'user_agent': self.user_agent, 'created_at': self.created_at}
 
 # アクセス前リクエストをフック
 @app.before_request
 def log_request_info():
+
+  # 静的ファイルは除外
+  if request.path.startswith("/static") or request.path == "/favicon.ico":
+    return
+
   access_logger.info(
     f"{request.remote_addr} {request.method} {request.path} "
     f"User-Agent: {request.user_agent.string}"
   )
-  # DB接続
-  con = get_connection()
-  if not con:
-    return "データベース接続失敗"
 
   try:
-    # カーソルを取得
-    cursor = con.cursor()
 
-    # INSERT分発行
-    cursor.execute(
-      "INSERT INTO t_access_log VALUES('%s','%s', '%s','%s',NULL)" % \
-      (date.today()
-      ,f"{request.path}"
-      ,f"{request.remote_addr}"
-      ,f"{request.user_agent.string}"
-      )
+    # アクセス情報書込
+    new_access = TAccessLog(
+      as_of_date=date.today()
+      ,path=request.path
+      ,ip=request.remote_addr
+      ,user_agent=request.user_agent
     )
+    db.session.add(new_access)
+    db.session.commit()
 
-  except pymysql.MySQLError as e:
-    access_logger.info(f"SQL実行エラー: {e}")
+  except SQLAlchemyError as e:
+    access_logger.error(f"SQLAlchemy error: {e}")
+    db.session.rollback()
 
   finally:
-    con.commit()
-    con.close()
+    pass
 
 # アイコンの設定
 @app.route('/favicon.ico')
@@ -98,7 +106,7 @@ def index():
 
   # 変数定義
   move_list = []
-  newest_day = "2000/01/01" 
+  newest_day = date(2000, 1, 1)
 
   # 各ファイルループ処理
   for f in listdir(dir_path):
@@ -108,16 +116,16 @@ def index():
 
     # ファイル以外は処理対処外
     if not isfile(full_path):
-      break
+      continue
 
     # mp4以外は処理対象外
-    if not ".mp4" in f:
-      break
+    if not f.lower().endswith(".mp4"):
+      continue
  
     # ファイルステータス取得
     size = getsize(full_path)
     mtime = getmtime(full_path)
-    buf_date = f[0:4] + "/" + f[4:6] + "/" + f[6:8]
+    buf_date = datetime.strptime(f[:8], "%Y%m%d").date()
 
     # 基準日MAXを保持
     if newest_day < buf_date :
@@ -128,7 +136,7 @@ def index():
       "name": f
      ,"size": str(round( int(f"{size}") / (1024 * 1024), 2)) + "MB"
      ,"date": buf_date
-     ,"updated_at": f"{datetime.fromtimestamp(mtime)}"
+     ,"updated_at": datetime.fromtimestamp(mtime)
      ,"url": url + f
     })
 
