@@ -4,12 +4,12 @@
 from os.path import join, getsize, getmtime, isfile
 from os import listdir,getenv
 from datetime import datetime,date
-from flask import Flask, render_template, send_from_directory,  g, request, session, redirect
+from flask import Flask, render_template, send_from_directory, request, abort
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.exc import SQLAlchemyError
 import logging
 from logging.handlers import RotatingFileHandler
-import pymysql
+import pymysql  # 型チェック用
 from dotenv import load_dotenv
 
 # 環境変数読込
@@ -42,10 +42,10 @@ app.config['SQLALCHEMY_DATABASE_URI'] = (
   f"mysql+pymysql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}/{DB_NAME}?charset=utf8"
 )
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-db = SQLAlchemy(app)
+db: SQLAlchemy = SQLAlchemy(app)
 
 # モデルクラス
-class TAccessLog(db.Model):
+class TAccessLog(db.Model):  # type: ignore
   __tablename__ = 't_access_log'
   id = db.Column(db.Integer, primary_key=True)
   as_of_date = db.Column(db.Date, nullable=False)
@@ -61,10 +61,14 @@ class TAccessLog(db.Model):
 @app.before_request
 def log_request_info():
 
+  # SNSクローラーは除外
+  if request.user_agent and ("facebookexternalhit" in request.user_agent.string or "line-poker" in request.user_agent.string):
+    abort(403)  # Forbidden
+
   # 静的ファイルは除外
   if request.path.startswith("/static") or request.path == "/favicon.ico":
     return
-
+  
   access_logger.info(
     f"{request.remote_addr} {request.method} {request.path} "
     f"User-Agent: {request.user_agent.string}"
