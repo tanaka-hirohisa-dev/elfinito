@@ -61,18 +61,19 @@ class TAccessLog(db.Model):  # type: ignore
 @app.before_request
 def log_request_info():
 
-  # SNSクローラーは除外
-  if request.user_agent and ("facebookexternalhit" in request.user_agent.string or "line-poker" in request.user_agent.string):
+  # SNSは除外
+  if "Instagram" in request.user_agent.string or " [FB" in request.user_agent.string or "facebookexternalhit" in request.user_agent.string :
+    access_logger.info(f"Blocked SNS crawler: {request.user_agent.string}")
     abort(403)  # Forbidden
 
   # 静的ファイルは除外
   if request.path.startswith("/static") or request.path == "/favicon.ico":
     return
   
-  access_logger.info(
-    f"{request.remote_addr} {request.method} {request.path} "
-    f"User-Agent: {request.user_agent.string}"
-  )
+  # access_logger.info(
+  #   f"{request.remote_addr} {request.method} {request.path} "
+  #   f"User-Agent: {request.user_agent.string}"
+  # )
 
   try:
 
