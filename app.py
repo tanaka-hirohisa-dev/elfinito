@@ -1,6 +1,35 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
+"""
+===============================
+LightWeight Video Sharing Web App - Flask Web Application
+===============================
+
+File: app.py
+Description: 簡易動画ファイル共有Webアプリ。Flaskフレームワークを使用したWebサーバーの設定、
+            ルーティング、データベース接続、ロギング機能を管理します。
+Author: TANAKA Hirohisa
+Created: 2026-02-20
+Version: 1.0.0
+License: MIT
+
+Module Overview:
+  - Flask アプリケーションの初期化
+  - MySQLデータベースへの接続
+  - ロギング機能の設定
+  - ルーティングとビューの実装
+
+Usage:
+  python app.py
+
+Requirements:
+  - Flask
+  - Flask-SQLAlchemy
+  - PyMySQL
+  - python-dotenv
+"""
+
 from os.path import join, getsize, getmtime, isfile
 from os import listdir,getenv
 from datetime import datetime,date
@@ -17,6 +46,9 @@ load_dotenv()
 
 # フレームワーク初期化
 app = Flask(__name__)
+
+# 非公開ディレクトリの絶対パス
+PRIVATE_PATH = getenv('PRIVATE_PATH')
 
 # アクセスログ用オブジェクト
 access_logger = logging.getLogger('werkzeug')
@@ -106,8 +138,8 @@ def favicon():
 def index():
 
   # 定数定義 
-  dir_path = "./move"
-  url = "https://snake-fish.com/elfinito/move/"
+  dir_path = PRIVATE_PATH
+  url = "https://snake-fish.com/elfinito/download/"
 
   # 変数定義
   move_list = []
@@ -152,7 +184,29 @@ def index():
   # ./templates/index.htmlを送信
   return render_template('index.html', list=sorted_list, start_day=newest_day)
 
+# ファイルダウンロード処理
+@app.route("/download/<path:filename>")
+def download_file(filename):
+  try:
+    # ファイル存在チェック
+    access_logger.info("call download_file")
+    access_logger.info(PRIVATE_PATH)
 
-# 呼び出し
+    file_path = join(PRIVATE_PATH, filename)
+    if not isfile(file_path):
+      abort(404)
+
+    # send_from_directory はディレクトリとファイル名を分けて指定
+    return send_from_directory(
+      directory=PRIVATE_PATH
+     ,path=filename
+     ,as_attachment=True   # 強制ダウンロード
+    )
+  except Exception as e:
+    # エラー時は500
+    abort(500, description=str(e))
+
+
+# メイン処理
 if __name__ == "__main__":
   app.run(threaded=True)
