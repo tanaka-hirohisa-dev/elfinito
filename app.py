@@ -40,6 +40,7 @@ import logging
 from logging.handlers import RotatingFileHandler
 import pymysql  # 型チェック用
 from dotenv import load_dotenv
+import re
 
 # 環境変数読込
 load_dotenv()
@@ -135,7 +136,14 @@ def favicon():
 
 # トップページ
 @app.route("/")
-def index():
+@app.route("/<page>")
+def index(page="20"):
+
+  # パラメータ取得
+  page = request.args.get('page', page)
+  if not page:
+    page='ALL'
+  print(page)
 
   # 定数定義 
   dir_path = PRIVATE_PATH
@@ -143,6 +151,7 @@ def index():
 
   # 変数定義
   move_list = []
+  name_list = []
   newest_day = date(2000, 1, 1)
 
   # 各ファイルループ処理
@@ -159,6 +168,25 @@ def index():
     if not f.lower().endswith(".mp4"):
       continue
  
+    # 出演者取得
+    match = re.search(r"\d{8}_(.*)_(.*).mp4", f)
+    if match:
+      name_list.append(match.group(1))
+      name_list.append(match.group(2))
+
+    # 名前絞込
+    if page.upper() == 'ALL':
+      pass
+    elif page.isdigit():
+      pass
+    elif page.lower() not in str(f).lower():
+      continue
+    else:
+      match = re.search(r"\d{8}_(.*)_(.*).mp4", f)
+      if match:
+        if str(match.group(1)) != page.lower() and str(match.group(2)) != page.lower():
+          continue
+
     # ファイルステータス取得
     size = getsize(full_path)
     mtime = getmtime(full_path)
@@ -179,10 +207,19 @@ def index():
 
   # ソートする
   sorted_list = sorted(move_list, key=lambda x: x["updated_at"], reverse=True)
+  if page.upper() == 'ALL':
+    pass
+  elif page.isdigit():
+    sorted_list = sorted_list[:int(page)]
+  else:
+    pass
+
+  # 出演者を一意にする
+  uname_list = sorted(list(set(name_list)))
 
 
   # ./templates/index.htmlを送信
-  return render_template('index.html', list=sorted_list, start_day=newest_day)
+  return render_template('index.html', list=sorted_list, start_day=newest_day, name_list=uname_list)
 
 # ファイルダウンロード処理
 @app.route("/download/<path:filename>")

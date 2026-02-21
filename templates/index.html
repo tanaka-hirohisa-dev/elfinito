@@ -10,7 +10,18 @@
 <body>
 
 {% set ns = namespace(buf_date = start_day) %}
-<span>※SNSからのアクセスは制限しています。</span>
+<div><span>SNSにアップするときは映っている人の許可を取ってください</span></div>
+
+<form method="GET">
+<select name="page" id="name">
+    <option value="{{ all }}" selected>すべて表示</option>
+  {% for name in name_list %}
+    <option value="{{ name }}">{{ name }}</option>
+    </option>
+  {% endfor %}
+</select>
+<button type="submit">Submit</button>
+</form>
 
 <h3>{{ start_day }}</h3>
 {% for target in list %}
@@ -30,6 +41,7 @@
 {% endfor %}
 
 
+<div><span><a href="{{ url_for('index', page='all') }}">すべて表示</a></spna></div>
 <img src="{{ url_for('static', filename='images/QR.png') }}"/>
 
 </body>
