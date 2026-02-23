@@ -13,14 +13,14 @@
 <div><span>SNSにアップするときは映っている人の許可を取ってください</span></div>
 
 <form method="GET">
-<select name="page" id="name">
+<select name="page" id="name" class="sbox_bordercolor">
     <option value="{{ all }}" selected>すべて表示</option>
   {% for name in name_list %}
     <option value="{{ name }}">{{ name }}</option>
     </option>
   {% endfor %}
 </select>
-<button type="submit">Submit</button>
+<button type="submit" class="button_rounded-soft">絞込</button>
 </form>
 
 <h3>{{ start_day }}</h3>

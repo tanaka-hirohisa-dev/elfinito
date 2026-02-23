@@ -143,7 +143,6 @@ def index(page="20"):
   page = request.args.get('page', page)
   if not page:
     page='ALL'
-  print(page)
 
   # 定数定義 
   dir_path = PRIVATE_PATH
