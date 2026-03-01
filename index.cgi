@@ -1,8 +1,11 @@
-#!/usr/local/bin/python3
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+import sys, os
+sys.path.insert(0, os.path.dirname(__file__))
 
 from wsgiref.handlers import CGIHandler
-# index.cgiファイルと同階層にあるapp.pyファイルを呼び出し
-from app import app
-# Flaskアプリ実行
-CGIHandler().run(app)
+from app import create_app
+
+application = create_app()  # Flaskインスタンス生成
+CGIHandler().run(application)
 
