@@ -23,6 +23,27 @@ def page_not_found(e):
 
 @video_bp.route("/")
 def index():
-    video_list, newest_day = get_video_list()
-    return render_template("index.html", list=video_list, start_day=newest_day)
+    video_list, newest_day, name_list = get_video_list()
+
+    # 動画リストフィルタリングパラメータ取得
+    page = request.args.get("page", "20")
+    # 件数によるフィルタリング
+    if page.isdigit():
+        page = int(page)
+        if page > 0:
+            video_list = video_list[:page]
+    # 全件出力
+    elif page != "all":
+        pass
+    # 名前によるフィルタリング
+    else:
+        video_list = [entry for entry in video_list if page in entry["name"]]
+
+    return render_template(
+        "index.html",
+        list=video_list,
+        start_day=newest_day,
+        name_list=name_list,
+        page=page
+    )
 

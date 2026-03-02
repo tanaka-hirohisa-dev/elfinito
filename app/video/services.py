@@ -1,6 +1,7 @@
 # app/video/services.py
 
 from datetime import date
+import re
 from .utils import (
     list_video_files,
     is_video_file,
@@ -12,11 +13,17 @@ from .utils import (
 )
 from os.path import join
 
+# 設定のインポート
+from app.config import Config
+
+# 動画ファイルのリストを取得するサービス関数
 def get_video_list():
-    dir_path = "/home/users/2/lolipop.jp-62450bf91a38e3ec/move"
+    # 動画ファイルのディレクトリを設定から取得
+    dir_path = Config.MOVE_DIR
     base_url = "https://snake-fish.com/elfinito/move/"
 
     move_list = []
+    name_list = []
     newest_day = date(2000, 1, 1)
 
     for filename in list_video_files(dir_path):
@@ -26,6 +33,12 @@ def get_video_list():
             continue
         if not is_video_file(filename):
             continue
+
+        # 動画メンバー取得
+        match = re.search(r"\d{8}_(.*)_(.*).mp4", filename)
+        if match:
+            name_list.append(match.group(1))
+            name_list.append(match.group(2))
 
         file_date = extract_date_from_filename(filename)
         if file_date is None:
@@ -48,5 +61,8 @@ def get_video_list():
 
     sorted_list = sorted(move_list, key=lambda x: x["updated_at"], reverse=True)
 
-    return sorted_list, newest_day
+    # 重複を削除して名前リストをソート
+    name_list = sorted(set(name_list))
+
+    return sorted_list, newest_day, name_list
 
