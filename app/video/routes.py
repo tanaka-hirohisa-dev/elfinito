@@ -3,12 +3,18 @@
 from flask import Blueprint, render_template, request
 from .services import get_video_list
 
+# 利用する共通ログ処理
+from ..utils import log_request_info
+
 video_bp = Blueprint(
     "video",
     __name__,
     template_folder="templates",
     static_folder="static"
 )
+
+# 動画ブループリントへのアクセス時のみ呼び出す
+video_bp.before_request(log_request_info)
 
 @video_bp.errorhandler(404)
 def page_not_found(e):

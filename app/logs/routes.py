@@ -1,36 +1,10 @@
-from flask import Blueprint, abort, request
-from datetime import date
-from sqlalchemy.exc import SQLAlchemyError
-from ..extensions import db, access_logger
-from .models import TAccessLog
+from flask import Blueprint
+
+# 複数のブループリントから呼び出す共有機能として移動した
+from ..utils import log_request_info
 
 logs_bp = Blueprint("logs", __name__, template_folder="templates", static_folder="static")
 
-@logs_bp.before_app_request
-def log_request_info():
-
-    ua = request.user_agent.string
-
-    # SNS除外
-    if "Instagram" in ua or " [FB" in ua or "facebookexternalhit" in ua:
-        access_logger.info(f"Blocked SNS crawler: {ua}")
-        abort(403)
-
-    # 静的ファイル除外
-    if request.path.startswith("/static") or request.path == "/favicon.ico":
-        return
-
-    try:
-        new_access = TAccessLog(
-            as_of_date=date.today(),
-            path=request.path,
-            ip=request.remote_addr,
-            user_agent=ua
-        )
-        db.session.add(new_access)
-        db.session.commit()
-
-    except SQLAlchemyError as e:
-        access_logger.error(f"SQLAlchemy error: {e}")
-        db.session.rollback()
+# アプリ全体で使う場合は before_app_request に登録
+logs_bp.before_app_request(log_request_info)
 
