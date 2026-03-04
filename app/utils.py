@@ -48,3 +48,6 @@ def log_request_info():
     except SQLAlchemyError as e:
         access_logger.error(f"SQLAlchemy error: {e}")
         db.session.rollback()
+    except Exception as e:
+        access_logger.error(f"Unexpected error while logging request: {e}")
+        db.session.rollback()

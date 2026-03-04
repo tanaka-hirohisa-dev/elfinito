@@ -19,5 +19,22 @@ def create_app():
     app.register_blueprint(logs_bp, url_prefix="/logs")
     app.register_blueprint(api_bp, url_prefix="/api")
 
+    # グローバルエラーハンドラ
+    @app.errorhandler(500)
+    def internal_server_error(error):
+        access_logger.error(f"500 Internal Server Error: {error}")
+        return {
+            "error": "Internal Server Error",
+            "message": str(error)
+        }, 500
+
+    @app.errorhandler(Exception)
+    def handle_exception(error):
+        access_logger.error(f"Unhandled exception: {error}", exc_info=True)
+        return {
+            "error": "Server Error",
+            "message": "An unexpected error occurred"
+        }, 500
+
     return app
 

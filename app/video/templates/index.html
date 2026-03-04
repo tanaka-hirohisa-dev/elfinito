@@ -13,7 +13,7 @@
 
 <form method="GET">
 <select name="page" id="name" class="sbox_bordercolor">
-    <option value="all"{% if page == 'all' %} selected>すべて表示</option>
+    <option value="all"{% if page == 'all' %} selected{% endif %}>すべて表示</option>
   {% for name in name_list %}
     <option value="{{ name }}"{% if name == page %} selected{% endif %}>{{ name }}</option>
   {% endfor %}

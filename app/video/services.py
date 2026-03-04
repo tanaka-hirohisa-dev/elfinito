@@ -2,6 +2,7 @@
 
 from datetime import date
 import re
+import os
 from .utils import (
     list_video_files,
     is_video_file,
@@ -25,6 +26,11 @@ def get_video_list():
     move_list = []
     name_list = []
     newest_day = date(2000, 1, 1)
+
+    # ディレクトリが存在しない場合はスキップ
+    if not os.path.isdir(dir_path):
+        print(f"Warning: Directory not found: {dir_path}")
+        return move_list, newest_day, name_list
 
     for filename in list_video_files(dir_path):
         full_path = join(dir_path, filename)

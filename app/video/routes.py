@@ -39,7 +39,7 @@ def index():
         if page > 0:
             video_list = video_list[:page]
     # 全件出力
-    elif page != "all":
+    elif page == "all":
         pass
     # 名前によるフィルタリング
     else:
