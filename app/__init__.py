@@ -15,7 +15,7 @@ def create_app():
     db.init_app(app)
 
     # Blueprint 登録
-    app.register_blueprint(video_bp, url_prefix="/video")
+    app.register_blueprint(video_bp, url_prefix="/")
     app.register_blueprint(logs_bp, url_prefix="/logs")
     app.register_blueprint(api_bp, url_prefix="/api")
 

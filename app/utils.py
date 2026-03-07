@@ -32,7 +32,7 @@ def log_request_info():
         abort(403)
 
     # 静的ファイル除外
-    if request.path.startswith("/static") or request.path == "/favicon.ico":
+    if request.path in ("/static/", "/favicon.ico"):
         return
 
     try:
