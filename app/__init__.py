@@ -4,6 +4,7 @@ from .extensions import db, access_logger
 
 # Blueprint読込
 from .video import video_bp
+from .download import download_bp
 from .logs import logs_bp
 from .api import api_bp
 
@@ -16,6 +17,7 @@ def create_app():
 
     # Blueprint 登録
     app.register_blueprint(video_bp, url_prefix="/")
+    app.register_blueprint(download_bp, url_prefix="/download")
     app.register_blueprint(logs_bp, url_prefix="/logs")
     app.register_blueprint(api_bp, url_prefix="/api")
 
@@ -33,7 +35,8 @@ def create_app():
         access_logger.error(f"Unhandled exception: {error}", exc_info=True)
         return {
             "error": "Server Error",
-            "message": "An unexpected error occurred"
+            # "message": "An unexpected error occurred"
+            "message": str(error)
         }, 500
 
     return app

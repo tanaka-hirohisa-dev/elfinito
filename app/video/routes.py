@@ -1,6 +1,7 @@
 # app/video/routes.py
 
-from flask import Blueprint, render_template, request
+from flask import Blueprint, render_template, request, send_from_directory
+from os.path import join
 from .services import get_video_list
 
 # 利用する共通ログ処理
@@ -26,6 +27,12 @@ def page_not_found(e):
         <p>Args: {request.args}</p>
     """
     return html, 404
+
+# アイコンの設定
+@video_bp.route('/favicon.ico')
+def favicon():
+  # ./static/favicon.icoを送信
+  return send_from_directory(join(video_bp.root_path, 'static'), 'favicon.ico')
 
 @video_bp.route("/")
 def index():

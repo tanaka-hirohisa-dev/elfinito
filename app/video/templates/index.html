@@ -33,7 +33,7 @@
       <span>{{ target["date"] }}</span><br />
       <span>{{ target["size"] }}</span><br />
       <span>{{ target["updated_at"] }}</span><br />
-      <span><a href="{{ target["url"] }}" download="{{ target["url"] }}">download</a></span><br />
+      <span><a href="{{ url_for('download.download_file', filename=target['name']) }}" download="{{ target["name"] }}">download</a></span><br />
     </p>
 </details>
 {% endfor %}

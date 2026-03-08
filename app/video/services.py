@@ -21,7 +21,6 @@ from app.config import Config
 def get_video_list():
     # 動画ファイルのディレクトリを設定から取得
     dir_path = Config.MOVE_DIR
-    base_url = "https://snake-fish.com/elfinito/move/"
 
     move_list = []
     name_list = []
@@ -52,7 +51,6 @@ def get_video_list():
 
         size = get_file_size_mb(full_path)
         updated_at = get_file_mtime(full_path)
-        url = build_video_url(base_url, filename)
 
         if newest_day < file_date:
             newest_day = file_date
@@ -61,8 +59,7 @@ def get_video_list():
             "name": filename,
             "size": size,
             "date": file_date,
-            "updated_at": updated_at,
-            "url": url
+            "updated_at": updated_at
         })
 
     sorted_list = sorted(move_list, key=lambda x: x["updated_at"], reverse=True)
