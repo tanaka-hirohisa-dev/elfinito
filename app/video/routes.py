@@ -28,18 +28,17 @@ def page_not_found(e):
     """
     return html, 404
 
-# アイコンの設定
-@video_bp.route('/favicon.ico')
-def favicon():
-  # ./static/favicon.icoを送信
-  return send_from_directory(join(video_bp.root_path, 'static'), 'favicon.ico')
-
-@video_bp.route("/")
-def index():
+@video_bp.route('/')
+@video_bp.route('/<string:param>')
+def index(param=None):
     video_list, newest_day, name_list = get_video_list()
 
     # 動画リストフィルタリングパラメータ取得
-    page = request.args.get("page", "20")
+    if param:
+        page = param
+    else:
+      page = request.args.get("page", "20")
+
     # 件数によるフィルタリング
     if page.isdigit():
         page = int(page)

@@ -1,4 +1,5 @@
-from flask import Flask
+from flask import Flask, send_from_directory
+from os.path import join
 from .config import Config
 from .extensions import db, access_logger
 
@@ -20,6 +21,12 @@ def create_app():
     app.register_blueprint(download_bp, url_prefix="/download")
     app.register_blueprint(logs_bp, url_prefix="/logs")
     app.register_blueprint(api_bp, url_prefix="/api")
+
+    # アイコンの設定
+    @app.route('/favicon.ico')
+    def favicon():
+    # ./static/favicon.icoを送信
+      return send_from_directory(join(app.root_path, 'static'), 'favicon.ico')
 
     # グローバルエラーハンドラ
     @app.errorhandler(500)
