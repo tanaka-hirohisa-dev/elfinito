@@ -11,7 +11,7 @@
 {% set ns = namespace(buf_date = start_day) %}
 <div><span>SNSにアップするときは映っている人の許可を取ってください</span></div>
 
-<form method="GET">
+<form method="GET" action="{{ url_for('video.index') }}">
 <select name="page" id="name" class="sbox_bordercolor">
     <option value="all"{% if page == 'all' %} selected{% endif %}>すべて表示</option>
   {% for name in name_list %}

@@ -49,7 +49,12 @@ def index(param=None):
         pass
     # 名前によるフィルタリング
     else:
-        video_list = [entry for entry in video_list if page in entry["name"]]
+        buf_list = []
+        for entry in video_list:
+            for filter_name in entry["filter"]:
+                if page == filter_name:
+                    buf_list.append(entry)
+        video_list = buf_list
 
     return render_template(
         "index.html",

@@ -32,7 +32,9 @@ def get_video_list():
         return move_list, newest_day, name_list
 
     for filename in list_video_files(dir_path):
+
         full_path = join(dir_path, filename)
+        filterlist = []
 
         if not is_file(full_path):
             continue
@@ -44,6 +46,8 @@ def get_video_list():
         if match:
             name_list.append(match.group(1))
             name_list.append(match.group(2))
+            filterlist.append(match.group(1))
+            filterlist.append(match.group(2))
 
         file_date = extract_date_from_filename(filename)
         if file_date is None:
@@ -59,6 +63,7 @@ def get_video_list():
             "name": filename,
             "size": size,
             "date": file_date,
+            "filter": filterlist,
             "updated_at": updated_at
         })
 
