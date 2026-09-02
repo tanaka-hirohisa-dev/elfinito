@@ -56,6 +56,12 @@ def index(param=None):
                     buf_list.append(entry)
         video_list = buf_list
 
+    # 最新日付の取得
+    newest_day = None
+    for entry in video_list:
+        if newest_day is None or entry["date"] > newest_day:
+            newest_day = entry["date"]
+
     return render_template(
         "index.html",
         list=video_list,
